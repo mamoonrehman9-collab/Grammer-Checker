@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GrammarLens | Grammar & Spelling Checker</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#070b1a; --glass:rgba(255,255,255,.06); --border:rgba(255,255,255,.12);
+  --text:#e8ecf8; --muted:#8b94b3; --spell:#ff5d73; --gram:#4da3ff; --ok:#3ddc97;
+  --accent:linear-gradient(135deg,#7c5cff,#4da3ff);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  font-family:'Inter',system-ui,Segoe UI,Arial,sans-serif;color:var(--text);min-height:100vh;
+  background:
+   radial-gradient(900px 500px at 10% -10%,rgba(124,92,255,.35),transparent 60%),
+   radial-gradient(800px 500px at 100% 0%,rgba(77,163,255,.28),transparent 60%),
+   var(--bg);
+  padding:32px 20px 60px;
+}
+.wrap{max-width:1100px;margin:0 auto}
+header{text-align:center;margin-bottom:34px}
+.badge{display:inline-block;padding:6px 14px;border:1px solid var(--border);border-radius:999px;background:var(--glass);font-size:12px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase}
+h1{font-size:clamp(32px,6vw,54px);font-weight:800;margin:16px 0 10px;letter-spacing:-.02em}
+h1 span{background:var(--accent);-webkit-background-clip:text;background-clip:text;color:transparent}
+header p{color:var(--muted);max-width:560px;margin:0 auto;line-height:1.6}
+.grid{display:grid;grid-template-columns:1.4fr 1fr;gap:20px}
+@media(max-width:860px){.grid{grid-template-columns:1fr}}
+.card{background:var(--glass);border:1px solid var(--border);border-radius:20px;padding:22px;backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);box-shadow:0 20px 60px rgba(0,0,0,.35)}
+.card h2{font-size:13px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);font-weight:600;margin-bottom:14px}
+textarea{width:100%;min-height:230px;resize:vertical;background:rgba(0,0,0,.28);border:1px solid var(--border);border-radius:14px;padding:16px;color:var(--text);font:16px/1.7 'Inter',sans-serif;outline:none;transition:.2s}
+textarea:focus{border-color:#7c5cff;box-shadow:0 0 0 4px rgba(124,92,255,.18)}
+.row{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;align-items:center}
+button{border:none;cursor:pointer;font:600 14px 'Inter',sans-serif;padding:12px 20px;border-radius:12px;transition:.2s}
+.primary{background:var(--accent);color:#fff;box-shadow:0 8px 24px rgba(124,92,255,.35)}
+.primary:hover{transform:translateY(-2px)}
+.ghost{background:var(--glass);color:var(--text);border:1px solid var(--border)}
+.ghost:hover{background:rgba(255,255,255,.12)}
+.count{margin-left:auto;color:var(--muted);font-size:13px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px}
+.stat{background:rgba(0,0,0,.25);border:1px solid var(--border);border-radius:14px;padding:12px 6px;text-align:center}
+.stat b{display:block;font-size:24px;font-weight:700}
+.stat small{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.06em}
+.stat.s b{color:var(--spell)} .stat.g b{color:var(--gram)}
+.issues{max-height:380px;overflow:auto;display:flex;flex-direction:column;gap:10px;padding-right:4px}
+.issue{background:rgba(0,0,0,.25);border:1px solid var(--border);border-left:4px solid var(--gram);border-radius:12px;padding:12px 14px;animation:in .3s ease}
+.issue.spelling{border-left-color:var(--spell)}
+@keyframes in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.issue .tag{font-size:11px;text-transform:uppercase;letter-spacing:.08em;font-weight:700;color:var(--gram)}
+.issue.spelling .tag{color:var(--spell)}
+.issue p{font-size:14px;margin:6px 0 10px;color:var(--text)}
+.issue s{color:var(--muted)}
+.fix{background:rgba(61,220,151,.14);color:var(--ok);border:1px solid rgba(61,220,151,.4);padding:7px 12px;font-size:13px}
+.fix:hover{background:rgba(61,220,151,.25)}
+.empty{text-align:center;color:var(--muted);padding:30px 10px;line-height:1.6}
+.empty .big{font-size:38px;display:block;margin-bottom:8px}
+.preview{margin-top:20px;line-height:1.9;font-size:16px;white-space:pre-wrap;word-break:break-word}
+mark{padding:1px 4px;border-radius:6px;color:var(--text)}
+mark.spelling{background:rgba(255,93,115,.22);border-bottom:2px solid var(--spell)}
+mark.grammar{background:rgba(77,163,255,.22);border-bottom:2px solid var(--gram)}
+footer{text-align:center;color:var(--muted);font-size:13px;margin-top:34px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <span class="badge">NLP Project</span>
+    <h1>Grammar<span>Lens</span></h1>
+    <p>Write or paste your text. Spelling mistakes and common grammar errors are highlighted instantly, with one-click fixes.</p>
+  </header>
+
+  <div class="grid">
+    <div>
+      <div class="card">
+        <h2>Your text</h2>
+        <textarea id="input" placeholder="Type here... e.g. i have a apple and and teh book. i dont know"></textarea>
+        <div class="row">
+          <button class="primary" id="checkBtn">Check text</button>
+          <button class="ghost" id="fixAllBtn">Fix all</button>
+          <button class="ghost" id="sampleBtn">Try sample</button>
+          <button class="ghost" id="clearBtn">Clear</button>
+          <span class="count" id="count">0 / 5000</span>
+        </div>
+      </div>
+      <div class="card preview-card" style="margin-top:20px">
+        <h2>Highlighted preview</h2>
+        <div class="preview" id="preview" style="margin-top:0;color:var(--muted)">Your highlighted text will appear here.</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Results</h2>
+      <div class="stats">
+        <div class="stat"><b id="sWords">0</b><small>Words</small></div>
+        <div class="stat s"><b id="sSpell">0</b><small>Spelling</small></div>
+        <div class="stat g"><b id="sGram">0</b><small>Grammar</small></div>
+        <div class="stat"><b id="sTotal">0</b><small>Total</small></div>
+      </div>
+      <div class="issues" id="issues">
+        <div class="empty"><span class="big">✍️</span>Start typing to see suggestions.</div>
+      </div>
+    </div>
+  </div>
+
+  <footer>Built with Python, FastAPI and pyspellchecker &middot; Rule-based NLP</footer>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+const input = $('input');
+let issues = [];
+let timer;
+
+const esc = s => s.replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+async function check() {
+  const text = input.value;
+  $('count').textContent = text.length + ' / 5000';
+  if (!text.trim()) { issues = []; render({words:0,spelling:0,grammar:0,total:0}); return; }
+  try {
+    const r = await fetch('/api/check', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({text})
+    });
+    if (!r.ok) throw new Error('Server error');
+    const d = await r.json();
+    issues = d.issues;
+    render(d.stats);
+  } catch (e) {
+    $('issues').innerHTML = '<div class="empty"><span class="big">⚠️</span>Could not reach the server.</div>';
+  }
+}
+
+function render(st) {
+  $('sWords').textContent = st.words;
+  $('sSpell').textContent = st.spelling;
+  $('sGram').textContent = st.grammar;
+  $('sTotal').textContent = st.total;
+
+  const box = $('issues');
+  if (!input.value.trim()) {
+    box.innerHTML = '<div class="empty"><span class="big">✍️</span>Start typing to see suggestions.</div>';
+  } else if (!issues.length) {
+    box.innerHTML = '<div class="empty"><span class="big">✅</span>No issues found. Great writing!</div>';
+  } else {
+    box.innerHTML = issues.map((it, i) => `
+      <div class="issue ${it.type}">
+        <span class="tag">${it.type}</span>
+        <p>${esc(it.message)}${it.suggestion ? `<br><s>${esc(it.text)}</s> → <b>${esc(it.suggestion)}</b>` : ''}</p>
+        ${it.suggestion ? `<button class="fix" data-i="${i}">Apply fix</button>` : ''}
+      </div>`).join('');
+  }
+
+  const text = input.value;
+  const pv = $('preview');
+  if (!text.trim()) { pv.style.color = 'var(--muted)'; pv.textContent = 'Your highlighted text will appear here.'; return; }
+  pv.style.color = 'var(--text)';
+  let out = '', last = 0;
+  for (const it of issues) {
+    if (it.start < last) continue;
+    out += esc(text.slice(last, it.start));
+    out += `<mark class="${it.type}" title="${esc(it.message)}">${esc(text.slice(it.start, it.end))}</mark>`;
+    last = it.end;
+  }
+  out += esc(text.slice(last));
+  pv.innerHTML = out;
+}
+
+function applyFix(i) {
+  const it = issues[i];
+  if (!it || !it.suggestion) return;
+  input.value = input.value.slice(0, it.start) + it.suggestion + input.value.slice(it.end);
+  check();
+}
+
+function fixAll() {
+  let text = input.value;
+  let limit = Infinity;
+  const list = issues.filter(x => x.suggestion).sort((a, b) => b.start - a.start);
+  for (const it of list) {
+    if (it.end > limit) continue;
+    text = text.slice(0, it.start) + it.suggestion + text.slice(it.end);
+    limit = it.start;
+  }
+  input.value = text;
+  check();
+}
+
+$('issues').addEventListener('click', e => {
+  if (e.target.classList.contains('fix')) applyFix(+e.target.dataset.i);
+});
+$('checkBtn').onclick = check;
+$('fixAllBtn').onclick = fixAll;
+$('clearBtn').onclick = () => { input.value = ''; check(); input.focus(); };
+$('sampleBtn').onclick = () => {
+  input.value = "i have a apple and and teh book. i dont know why ther is alot of mistakes. Your welcome to try it.";
+  check();
+};
+input.addEventListener('input', () => { clearTimeout(timer); timer = setTimeout(check, 500); });
+</script>
+</body>
+</html>
