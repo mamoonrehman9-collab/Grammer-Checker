@@ -2,12 +2,12 @@ from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.responses import FileResponse
-from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
 from engine import analyze
 
 BASE_DIR = Path(__file__).parent
+PUBLIC_DIR = BASE_DIR / "public"
 
 app = FastAPI(title="Grammar & Spelling Checker")
 
@@ -26,9 +26,6 @@ def health():
     return {"status": "ok"}
 
 
-app.mount("/static", StaticFiles(directory=BASE_DIR / "static"), name="static")
-
-
 @app.get("/")
 def home():
-    return FileResponse(BASE_DIR / "static" / "index.html")
+    return FileResponse(PUBLIC_DIR / "index.html")
