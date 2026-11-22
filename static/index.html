@@ -195,8 +195,28 @@ $('issues').addEventListener('click', e => {
 $('checkBtn').onclick = check;
 $('fixAllBtn').onclick = fixAll;
 $('clearBtn').onclick = () => { input.value = ''; check(); input.focus(); };
+const SAMPLES = [
+  "i have a apple and and teh book. i dont know why ther is alot of mistakes. Your welcome to try it.",
+  "He go to school every day, but they was late yesterday. I seen him at the the market.",
+  "She dont like coffee, and everyone are happy about it. We could of stayed longer.",
+  "Their are many reasons to learn python. Its a very usefull language for a beginner.",
+  "I recieve alot of emails on monday. Definately a important task is waiting for me.",
+  "What is your name. However I think we should discuss about the project tomorow.",
+  "The weather was beutiful,and we went to a university.  Less people came then expected.",
+  "My freind said he can goes there if its not raining. I dont know nothing about it.",
+  "Me and him was going to the park when i seen a elephant. It was to big to believe.",
+  "There car is broken, so they're going to take a taxi. Please recieve the package on friday.",
+  "i woke up early because i had a important meeting. I wont be late, and im excited.",
+  "The the teacher explained the lesson very clearly. Everybody have understood it in order to pass."
+];
+let lastSample = -1;
+
 $('sampleBtn').onclick = () => {
-  input.value = "i have a apple and and teh book. i dont know why ther is alot of mistakes. Your welcome to try it.";
+  let i;
+  do { i = Math.floor(Math.random() * SAMPLES.length); }
+  while (i === lastSample && SAMPLES.length > 1);
+  lastSample = i;
+  input.value = SAMPLES[i];
   check();
 };
 input.addEventListener('input', () => { clearTimeout(timer); timer = setTimeout(check, 500); });
